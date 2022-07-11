@@ -20,25 +20,23 @@ class App extends React.Component {
     }
   }
 
-  handleInputsChange = ({ target: { name, value } }) => {
-    this.setState({ [name]: value });
-  };
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.contacts.length !== this.state.contacts.length) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
 
   handleAddContact = newContactData => {
     const newContactEntity = {
       id: nanoid(),
       ...newContactData,
     };
-    
-    if (this.checkNewContactPresence(newContactEntity.name)) {
-      alert(`${newContactEntity.name} is already in contacts!`);
-    } else {
-      localStorage.setItem(
-        'contacts',
-        JSON.stringify([...this.state.contacts, newContactEntity])
-      );
-      this.setState(state => ({ contacts: [...state.contacts, newContactEntity] }));
-    }
+
+    !this.checkNewContactPresence(newContactEntity.name)
+      ? this.setState(state => ({
+          contacts: [...state.contacts, newContactEntity],
+        }))
+      : alert(`${newContactEntity.name} is already in contacts!`);
   };
 
   handleDeleteContact = contactId => {
@@ -46,7 +44,6 @@ class App extends React.Component {
       contact => contact.id !== contactId
     );
 
-    localStorage.setItem('contacts', JSON.stringify(newContacts));
     this.setState(() => ({ contacts: newContacts }));
   };
 
@@ -64,9 +61,7 @@ class App extends React.Component {
     return (
       <div className="app">
         <Section title="Phonebook">
-          <ContactForm
-            addContact={this.handleAddContact}
-          />
+          <ContactForm addContact={this.handleAddContact} />
         </Section>
         <Section title="Contacts">
           <Filter filter={filter} onChange={this.handleFilterContactsByName} />
